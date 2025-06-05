@@ -17,11 +17,17 @@ USER 0
 
 ENV ARTEMIS_HOME=/opt/apache-artemis
 ENV ARTEMIS_RUNTIME=/var/lib/artemis
-ENV ARTEMIS_USER=artemis
-ENV ARTEMIS_PASSWORD=artemis
+ENV ARTEMIS_USER=guest
+ENV ARTEMIS_PASSWORD=guest
 
 # Install python3
-RUN microdnf install -y python3
+RUN microdnf install -y \
+    python3 \
+    python3-pip \
+    gcc \
+    python3-devel
+
+RUN pip3 install python-qpid-proton
 
 WORKDIR ${ARTEMIS_RUNTIME}
 RUN chmod -R g+rwX ${ARTEMIS_RUNTIME}
@@ -31,8 +37,7 @@ RUN cd /opt/apache-artemis/bin \
   && ./artemis create ${ARTEMIS_RUNTIME} \
     --user ${ARTEMIS_USER} \
     --password ${ARTEMIS_PASSWORD} \
-    --allow-anonymous \
-    --require-login
+    --allow-anonymous
 
 # Runtime stage - minimal openjdk runtime + python
 RUN chmod -R g+rwX ${ARTEMIS_RUNTIME}
@@ -40,6 +45,6 @@ RUN chmod -R g+rwX ${ARTEMIS_RUNTIME}
 # Copy custom files
 COPY utils/* ${ARTEMIS_RUNTIME}/utils/
 
-EXPOSE 61616 8161
+EXPOSE 61616 8161 5672
 
 CMD ["./bin/artemis", "run"]
