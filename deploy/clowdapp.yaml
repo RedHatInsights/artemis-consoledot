@@ -1,0 +1,77 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: artemis
+parameters:
+  - name: ENV_NAME
+    value: env-artemis
+  - name: ARTEMIS_IMAGE
+    value: quay.io/jcarvaja/artemis
+  - name: ARTEMIS_IMAGE_TAG
+    value: latest
+  - name: MEMORY_REQUEST
+    value: 512Mi
+  - name: MEMORY_LIMIT
+    value: 1Gi
+  - name: CPU_REQUEST
+    value: 300m
+  - name: CPU_LIMIT
+    value: 600m
+objects:
+  - apiVersion: cloud.redhat.com/v1alpha1
+    kind: ClowdApp
+    metadata:
+      name: artemis
+      labels:
+        app: artemis
+    spec:
+      envName: ${ENV_NAME}
+
+      deployments:
+        - name: service
+          replicas: 1
+          webServices:
+            public:
+              - name: amqp
+                containerPort: 5672
+              - name: openwire
+                containerPort: 61616
+          podSpec:
+            image: ${ARTEMIS_IMAGE}:${ARTEMIS_IMAGE_TAG}
+            resources:
+              requests:
+                cpu: ${CPU_REQUEST}
+                memory: ${MEMORY_REQUEST}
+              limits:
+                cpu: ${CPU_LIMIT}
+                memory: ${MEMORY_LIMIT}
+            env:
+              - name: KEYSTORE_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: tls
+                    key: keystore_password
+            livenessProbe:
+              exec:
+                command: ["python3", "utils/healthcheck.py"]
+              initialDelaySeconds: 120
+              periodSeconds: 10
+              timeoutSeconds: 5
+              successThreshold: 1
+              failureThreshold: 3
+            readinessProbe:
+              exec:
+                command: ["python3", "utils/healthcheck.py"]
+              initialDelaySeconds: 15
+              periodSeconds: 10
+              timeoutSeconds: 5
+              successThreshold: 1
+              failureThreshold: 3
+            volumeMounts:
+            - name: pinhead
+              mountPath: /pinhead
+            volumes:
+            - name: pinhead
+              secret:
+                secretName: pinhead

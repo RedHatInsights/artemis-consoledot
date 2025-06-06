@@ -32,6 +32,9 @@ RUN pip3 install python-qpid-proton
 WORKDIR ${ARTEMIS_RUNTIME}
 RUN chmod -R g+rwX ${ARTEMIS_RUNTIME}
 
+# Copy custom files
+COPY utils/* ${ARTEMIS_RUNTIME}/utils/
+
 # Create Artemis broker instance
 RUN cd /opt/apache-artemis/bin \
   && ./artemis create ${ARTEMIS_RUNTIME} \
@@ -39,12 +42,8 @@ RUN cd /opt/apache-artemis/bin \
     --password ${ARTEMIS_PASSWORD} \
     --allow-anonymous
 
-# Runtime stage - minimal openjdk runtime + python
 RUN chmod -R g+rwX ${ARTEMIS_RUNTIME}
 
-# Copy custom files
-COPY utils/* ${ARTEMIS_RUNTIME}/utils/
-
-EXPOSE 61616 8161 5672
+EXPOSE 61616 5672
 
 CMD ["./bin/artemis", "run"]
