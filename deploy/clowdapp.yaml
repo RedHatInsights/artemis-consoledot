@@ -6,9 +6,9 @@ metadata:
 parameters:
   - name: ENV_NAME
     value: env-artemis
-  - name: ARTEMIS_IMAGE
-    value: quay.io/jcarvaja/artemis
-  - name: ARTEMIS_IMAGE_TAG
+  - name: IMAGE
+    value: quay.io/cloudservices/artemis
+  - name: IMAGE_TAG
     value: latest
   - name: MEMORY_REQUEST
     value: 512Mi
@@ -38,7 +38,7 @@ objects:
               - name: openwire
                 containerPort: 61616
           podSpec:
-            image: ${ARTEMIS_IMAGE}:${ARTEMIS_IMAGE_TAG}
+            image: ${IMAGE}:${IMAGE_TAG}
             resources:
               requests:
                 cpu: ${CPU_REQUEST}
