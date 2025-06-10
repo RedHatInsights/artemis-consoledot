@@ -33,10 +33,11 @@ objects:
           replicas: 1
           webServices:
             public:
-              - name: amqp
-                containerPort: 5672
-              - name: openwire
-                containerPort: 61616
+              enabled: false
+            private:
+              enabled: false
+            metrics:
+              enabled: false
           podSpec:
             image: ${IMAGE}:${IMAGE_TAG}
             resources:
@@ -75,3 +76,20 @@ objects:
             - name: pinhead
               secret:
                 secretName: pinhead
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: artemis-service
+      labels:
+        app: artemis
+    spec:
+      ports:
+      - name: artemis-port
+        port: 5672
+        protocol: TCP
+        targetPort: 5672
+      selector:
+        app: artemis
+        pod: artemis-service
+      sessionAffinity: None
+      type: ClusterIP
