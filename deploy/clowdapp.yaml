@@ -10,6 +10,8 @@ parameters:
     value: quay.io/cloudservices/artemis
   - name: IMAGE_TAG
     value: latest
+  - name: IMAGE_PULL_SECRET
+    value: quay-cloudservices-pull
   - name: MEMORY_REQUEST
     value: 512Mi
   - name: MEMORY_LIMIT
@@ -19,65 +21,71 @@ parameters:
   - name: CPU_LIMIT
     value: 600m
 objects:
-  - apiVersion: apps/v1
-    kind: Deployment
+  - apiVersion: cloud.redhat.com/v1alpha1
+    kind: ClowdApp
     metadata:
       name: artemis
       labels:
         app: artemis
     spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: artemis
-      template:
-        metadata:
-          labels:
-            app: artemis
-        spec:
-          containers:
-            - name: service
-              image: ${IMAGE}:${IMAGE_TAG}
-              resources:
-                requests:
-                  cpu: ${CPU_REQUEST}
-                  memory: ${MEMORY_REQUEST}
-                limits:
-                  cpu: ${CPU_LIMIT}
-                  memory: ${MEMORY_LIMIT}
-              env:
-                - name: KEYSTORE_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: tls
-                      key: keystore_password
-              livenessProbe:
-                exec:
-                  command: ["python3", "utils/healthcheck.py"]
-                initialDelaySeconds: 120
-                periodSeconds: 10
-                timeoutSeconds: 5
-                successThreshold: 1
-                failureThreshold: 3
-              readinessProbe:
-                exec:
-                  command: ["python3", "utils/healthcheck.py"]
-                initialDelaySeconds: 15
-                periodSeconds: 10
-                timeoutSeconds: 5
-                successThreshold: 1
-                failureThreshold: 3
-              volumeMounts:
-                - name: pinhead
-                  mountPath: /pinhead
-        volumes:
-          - name: pinhead
-            secret:
-              secretName: pinhead
+      envName: ${ENV_NAME}
+
+      pullSecrets:
+        name: ${IMAGE_PULL_SECRET}
+
+      deployments:
+        - name: service
+          replicas: 1
+          webServices:
+            public:
+              enabled: false
+            private:
+              enabled: false
+            metrics:
+              enabled: false
+          podSpec:
+            image: ${IMAGE}:${IMAGE_TAG}
+            resources:
+              requests:
+                cpu: ${CPU_REQUEST}
+                memory: ${MEMORY_REQUEST}
+              limits:
+                cpu: ${CPU_LIMIT}
+                memory: ${MEMORY_LIMIT}
+            env:
+              - name: KEYSTORE_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: tls
+                    key: keystore_password
+            livenessProbe:
+              exec:
+                command: ["python3", "utils/healthcheck.py"]
+              initialDelaySeconds: 120
+              periodSeconds: 10
+              timeoutSeconds: 5
+              successThreshold: 1
+              failureThreshold: 3
+            readinessProbe:
+              exec:
+                command: ["python3", "utils/healthcheck.py"]
+              initialDelaySeconds: 15
+              periodSeconds: 10
+              timeoutSeconds: 5
+              successThreshold: 1
+              failureThreshold: 3
+            volumeMounts:
+            - name: pinhead
+              mountPath: /pinhead
+            volumes:
+            - name: pinhead
+              secret:
+                secretName: pinhead
+
   - apiVersion: v1
     kind: Service
     metadata:
-      name: artemis-service
+      name: artemis-amqp-service
       labels:
         app: artemis
     spec:
@@ -92,6 +100,6 @@ objects:
         targetPort: 61616
       selector:
         app: artemis
-        deployment: artemis-service
+        pod: artemis-service
       sessionAffinity: None
       type: ClusterIP
