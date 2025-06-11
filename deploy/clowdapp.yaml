@@ -25,46 +25,51 @@ objects:
       name: artemis
       labels:
         app: artemis
-    template:
-      metadata:
-        labels:
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
           app: artemis
-      spec:
-        containers:
-          - name: service
-            image: ${IMAGE}:${IMAGE_TAG}
-            resources:
-              requests:
-                cpu: ${CPU_REQUEST}
-                memory: ${MEMORY_REQUEST}
-              limits:
-                cpu: ${CPU_LIMIT}
-                memory: ${MEMORY_LIMIT}
-            env:
-              - name: KEYSTORE_PASSWORD
-                valueFrom:
-                  secretKeyRef:
-                    name: tls
-                    key: keystore_password
-            livenessProbe:
-              exec:
-                command: ["python3", "utils/healthcheck.py"]
-              initialDelaySeconds: 120
-              periodSeconds: 10
-              timeoutSeconds: 5
-              successThreshold: 1
-              failureThreshold: 3
-            readinessProbe:
-              exec:
-                command: ["python3", "utils/healthcheck.py"]
-              initialDelaySeconds: 15
-              periodSeconds: 10
-              timeoutSeconds: 5
-              successThreshold: 1
-              failureThreshold: 3
-            volumeMounts:
-              - name: pinhead
-                mountPath: /pinhead
+      template:
+        metadata:
+          labels:
+            app: artemis
+        spec:
+          containers:
+            - name: service
+              image: ${IMAGE}:${IMAGE_TAG}
+              resources:
+                requests:
+                  cpu: ${CPU_REQUEST}
+                  memory: ${MEMORY_REQUEST}
+                limits:
+                  cpu: ${CPU_LIMIT}
+                  memory: ${MEMORY_LIMIT}
+              env:
+                - name: KEYSTORE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: tls
+                      key: keystore_password
+              livenessProbe:
+                exec:
+                  command: ["python3", "utils/healthcheck.py"]
+                initialDelaySeconds: 120
+                periodSeconds: 10
+                timeoutSeconds: 5
+                successThreshold: 1
+                failureThreshold: 3
+              readinessProbe:
+                exec:
+                  command: ["python3", "utils/healthcheck.py"]
+                initialDelaySeconds: 15
+                periodSeconds: 10
+                timeoutSeconds: 5
+                successThreshold: 1
+                failureThreshold: 3
+              volumeMounts:
+                - name: pinhead
+                  mountPath: /pinhead
         volumes:
           - name: pinhead
             secret:
