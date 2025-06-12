@@ -6,7 +6,7 @@ ARG ARTEMIS_VERSION=2.32.0
 RUN mkdir -p /opt/apache-artemis \
   && curl https://archive.apache.org/dist/activemq/activemq-artemis/${ARTEMIS_VERSION}/apache-artemis-${ARTEMIS_VERSION}-bin.tar.gz -o apache-artemis-bin.tar.gz \
   && tar -xzf apache-artemis-bin.tar.gz -C /opt/apache-artemis \
-  && mv /opt/apache-artemis/apache-artemis-2.32.0/* /opt/apache-artemis/
+  && mv /opt/apache-artemis/apache-artemis-${ARTEMIS_VERSION}/* /opt/apache-artemis/
 
 # Runtime
 FROM registry.access.redhat.com/ubi9/openjdk-17
