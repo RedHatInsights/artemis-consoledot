@@ -7,7 +7,7 @@ parameters:
   - name: ENV_NAME
     value: env-artemis
   - name: IMAGE
-    value: quay.io/cloudservices/artemis
+    value: quay.io/redhat-services-prod/rh-subs-watch-tenant/artemis
   - name: IMAGE_TAG
     value: latest
   - name: IMAGE_PULL_SECRET
