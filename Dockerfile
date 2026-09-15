@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi:1789348710 AS build
+FROM registry.access.redhat.com/ubi9/ubi:1789461369 AS build
 USER 0
 ARG ARTEMIS_VERSION=2.32.0
 
